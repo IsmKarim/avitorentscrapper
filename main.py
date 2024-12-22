@@ -1,52 +1,40 @@
-from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-import time
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
 import re
+import json
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
+options = Options()
+service = Service("C:\chromediver\chromedriver-win64\chromedriver.exe")
+driver = webdriver.Chrome(service=service, options=options)
+
+url = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,119,48,93"
 
 def get_text_or_na(elements):
-    """Helper function to return the stripped text of the first element or 'N/A' if none found."""
     return elements[0].text.strip() if elements else "N/A"
 
 def get_attribute_or_na(elements, attribute):
-    """Helper function to return the given attribute of the first element or 'N/A' if none found."""
     return elements[0].get_attribute(attribute).strip() if elements else "N/A"
 
 listing_id_pattern = re.compile(r'_(\d+)\.htm$')
 
-
-options = Options()
-service = Service("C:\chromedriver\chromedriver-win64\chromedriver.exe")
-driver = webdriver.Chrome(service=service, options=options)
-
-
-
-url = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,119,48,93"
-
-try:
-    # Go to a sample Avito listings page
-    driver.get("https://www.avito.ma/fr/maroc/immobilier-%C3%A0_vendre")
-    time.sleep(5)  # wait for content to load
-
-    # Find all listings
+def scrape_page(driver):
     listings = driver.find_elements(By.CSS_SELECTOR, "div.sc-1nre5ec-1.crKvIr.listing > a")
+    page_data = []
 
     for listing in listings:
-        # Extract link
         link = listing.get_attribute("href") or "N/A"
-
-        # Extract listing reference (ID) using regex
         listing_id_match = listing_id_pattern.search(link)
         listing_id = listing_id_match.group(1) if listing_id_match else "N/A"
 
-        # Seller name
+        # Seller
         seller_name_elem = listing.find_elements(By.CSS_SELECTOR, "p.sc-1x0vz2r-0.hNCqYw")
         seller = get_text_or_na(seller_name_elem)
 
-        # isBoutique
+        # Boutique
         is_boutique = bool(listing.find_elements(By.CSS_SELECTOR, "svg[aria-labelledby='ShopBadgeTitleID']"))
 
         # Posted time
@@ -57,7 +45,7 @@ try:
         title_elem = listing.find_elements(By.CSS_SELECTOR, "p.sc-1x0vz2r-0.iHApav")
         title = title_elem[0].get_attribute("title").strip() if title_elem else "N/A"
 
-        # Location parsing
+        # Location
         location_elem = listing.find_elements(By.CSS_SELECTOR, "p.sc-1x0vz2r-0.layWaX")
         location_text = get_text_or_na(location_elem)
         category = city = secteur = "N/A"
@@ -73,7 +61,8 @@ try:
         cover_img = get_attribute_or_na(cover_img_elem, "src")
 
         # Price
-        price_elem = listing.find_elements(By.CSS_SELECTOR, "div.sc-b57yxx-4.dRjnHr p.sc-1x0vz2r-0.dJAfqm.sc-b57yxx-3.IneBF")
+        price_elem = listing.find_elements(By.CSS_SELECTOR,
+                                           "div.sc-b57yxx-4.dRjnHr p.sc-1x0vz2r-0.dJAfqm.sc-b57yxx-3.IneBF")
         price = get_text_or_na(price_elem)
 
         # Beds, Baths, Area
@@ -90,22 +79,46 @@ try:
             elif "surface" in title_attr:
                 area = " ".join(block_text) if block_text else "N/A"
 
-        # Print extracted data including the listing_id
-        print("Link:", link)
-        print("ListingID:", listing_id)
-        print("Category:", category)
-        print("Seller:", seller)
-        print("isBoutique:", is_boutique)
-        print("PostedAt:", posted_at)
-        print("Title:", title)
-        print("City:", city)
-        print("Secteur:", secteur)
-        print("CoverImage:", cover_img)
-        print("Price:", price)
-        print("Beds:", beds)
-        print("Baths:", baths)
-        print("Area:", area)
-        print("---")
+        page_data.append({
+            "Link": link,
+            "ListingID": listing_id,
+            "Category": category,
+            "Seller": seller,
+            "isBoutique": is_boutique,
+            "PostedAt": posted_at,
+            "Title": title,
+            "City": city,
+            "Secteur": secteur,
+            "CoverImage": cover_img,
+            "Price": price,
+            "Beds": beds,
+            "Baths": baths,
+            "Area": area
+        })
+
+    return page_data
+
+try:
+
+    base_url = url
+    all_listings = []
+    page_number = 1
+
+    while page_number < 10:
+        url = f"{base_url}?o={page_number}" if page_number > 1 else base_url
+        driver.get(url)
+        time.sleep(5)
+        page_data = scrape_page(driver)
+        if not page_data:
+            break
+        all_listings.extend(page_data)
+        page_number += 1
+
+    with open("listings.json", "w", encoding="utf-8") as f:
+        json.dump(all_listings, f, ensure_ascii=False, indent=4)
+    print("Scraping complete. JSON data saved in listings.json.")
 
 finally:
     driver.quit()
+
+
