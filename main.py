@@ -11,7 +11,7 @@ options = Options()
 service = Service("C:\chromediver\chromedriver-win64\chromedriver.exe")
 driver = webdriver.Chrome(service=service, options=options)
 
-url = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,119,48,93"
+baseURL = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,119,48,93"
 
 def get_text_or_na(elements):
     return elements[0].text.strip() if elements else "N/A"
@@ -100,12 +100,14 @@ def scrape_page(driver):
 
 try:
 
-    base_url = url
+    base_url = baseURL
     all_listings = []
     page_number = 1
 
     while page_number < 10:
-        url = f"{base_url}?o={page_number}" if page_number > 1 else base_url
+        print("NEXT")
+
+        url = f"{base_url}&o={page_number}" if page_number > 1 else base_url
         driver.get(url)
         time.sleep(5)
         page_data = scrape_page(driver)
@@ -113,6 +115,9 @@ try:
             break
         all_listings.extend(page_data)
         page_number += 1
+        print(page_number)
+        print(url)
+        print("Current URL in the driver:", driver.current_url)
 
     with open("listings.json", "w", encoding="utf-8") as f:
         json.dump(all_listings, f, ensure_ascii=False, indent=4)
