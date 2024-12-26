@@ -11,8 +11,8 @@ options = Options()
 service = Service("C:\chromediver\chromedriver-win64\chromedriver.exe")
 driver = webdriver.Chrome(service=service, options=options)
 
-baseURL = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,119,48,93"
-
+baseURL = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,48,39,119,403"
+pagesToScrap = 200
 def get_text_or_na(elements):
     return elements[0].text.strip() if elements else "N/A"
 
@@ -104,12 +104,12 @@ try:
     all_listings = []
     page_number = 1
 
-    while page_number < 10:
+    while page_number < pagesToScrap:
         print("NEXT")
 
         url = f"{base_url}&o={page_number}" if page_number > 1 else base_url
         driver.get(url)
-        time.sleep(5)
+        time.sleep(4)
         page_data = scrape_page(driver)
         if not page_data:
             break
