@@ -117,10 +117,11 @@ def scrape_listings(driver, listings):
     """Scrape data for each listing in the provided list."""
     results = []
     for listing in listings:
-        print(f"Processing listing: {listing}")
-        result = extract_data(driver, listing.get("Link", ""))
-        print(result)
-        results.append(result)
+        print(f"Processing listing: {listing.get('Link', '')}")
+        scraped_data = extract_data(driver, listing.get("Link", ""))
+        combined_data = {**listing, **scraped_data}
+        print(combined_data)
+        results.append(combined_data)
     return results
 
 def save_results(results, file_path):
