@@ -11,7 +11,7 @@ options = Options()
 service = Service("C:\chromediver\chromedriver-win64\chromedriver.exe")
 driver = webdriver.Chrome(service=service, options=options)
 
-baseURL = "https://www.avito.ma/fr/maroc/ventes_immobilieres-%C3%A0_vendre?cities=5,48,39,119,403"
+baseURL = "https://www.avito.ma/fr/maroc/locations_immobilieres-%C3%A0_louer?cities=5,48,119"
 pagesToScrap = 200
 def get_text_or_na(elements):
     return elements[0].text.strip() if elements else "N/A"
@@ -119,7 +119,7 @@ try:
         print(url)
         print("Current URL in the driver:", driver.current_url)
 
-    with open("listings.json", "w", encoding="utf-8") as f:
+    with open("listingsRentals.json", "w", encoding="utf-8") as f:
         json.dump(all_listings, f, ensure_ascii=False, indent=4)
     print("Scraping complete. JSON data saved in listings.json.")
 

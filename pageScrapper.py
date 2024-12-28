@@ -32,7 +32,7 @@ def read_listings(file_path):
 def extract_data(driver, listing_url):
     """Extract required data from a single listing."""
     driver.get(listing_url)
-    time.sleep(5)
+    time.sleep(3)
 
     data = {}
 
