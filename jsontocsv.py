@@ -10,9 +10,9 @@ try:
         # Convert to a DataFrame
         df = pd.DataFrame(data)
 
-        # Save the DataFrame to a CSV file
+        # Save the DataFrame to a CSV file with UTF-8 encoding
         output_csv_path = r"outputdata.csv"  # Replace with your desired output path
-        df.to_csv(output_csv_path, index=False)
+        df.to_csv(output_csv_path, index=False, encoding='utf-8')
         print(f"JSON data has been successfully converted to CSV and saved as '{output_csv_path}'.")
     else:
         print("The JSON file does not contain a list of objects.")
