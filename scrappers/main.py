@@ -3,8 +3,8 @@ from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from propertiesSaleScrapper import RealEstateScraper
-from rentalsScrapper import RentalScraper
+from .propertiesSaleScrapper import RealEstateScraper
+from .rentalsScrapper import RentalScraper
 import os
 import json
 
